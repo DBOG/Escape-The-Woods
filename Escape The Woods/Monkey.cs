@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Text;
 
 
@@ -22,16 +23,15 @@ namespace Escape_The_Woods
             Escaped = false;
             Color = color;
         }
-        public void Jump(Forest forest)
+        public async Task Jump(Forest forest)
         {
-            Console.WriteLine($"{Naam} jumped from treeID {CurrentTree.ID}  X: {CurrentTree.PositionX} Y: {CurrentTree.PositionY} to treeID {ClosestTree.ID} X: {ClosestTree.PositionX} Y: {ClosestTree.PositionY}");
             VisitedTrees.Add(ClosestTree);
             CurrentTree.IsOccupied = false;
             forest.Trees[ClosestTree.ID].IsOccupied = true;
             CurrentTree = ClosestTree;
             ClosestTree = null;
         }
-        public void CalculateClosestTree(Forest forest)
+        public async Task CalculateClosestTree(Forest forest)
         {
             double distanceToBorder = (new List<double>() { forest.ymax - CurrentTree.PositionY,
                                                             forest.xmax - CurrentTree.PositionX,
@@ -60,11 +60,12 @@ namespace Escape_The_Woods
             if(distanceToBorder < distanceToClosestTree)
             {
                 Escaped = true;
-                DataBaseManager.WriteMonkeyRecordsToDataBase(this, forest.ID);
+                await DataBaseManager.WriteMonkeyRecordsToDataBase(this, forest.ID);
             }
             else
             {
-                Jump(forest);
+                await DataBaseManager.WriteToTextFile(forest);
+                await Jump(forest);
             }
         }
     }

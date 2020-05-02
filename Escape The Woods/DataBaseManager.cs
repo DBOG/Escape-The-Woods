@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Data.SqlClient;
 using System.Data;
+using System.Threading.Tasks;
+using System.IO;
 namespace Escape_The_Woods
 {
     static class DataBaseManager
@@ -91,7 +93,7 @@ namespace Escape_The_Woods
                 }
             }
         }
-        public static void WriteForestToDataBase(Forest forest)
+        public static async Task WriteForestToDataBase(Forest forest)
         {
             Console.WriteLine($"Write forest {forest.ID} to database - start");
             SqlConnection connection = GetConnection();
@@ -102,7 +104,7 @@ namespace Escape_The_Woods
                 {
                     try
                     {
-                        connection.Open();
+                        await Task.Run(() => connection.Open());
                         command.Parameters.Add(new SqlParameter("@woodID", SqlDbType.Int));
                         command.Parameters.Add(new SqlParameter("@treeID", SqlDbType.Int));
                         command.Parameters.Add(new SqlParameter("@x", SqlDbType.Int));
@@ -112,7 +114,7 @@ namespace Escape_The_Woods
                         command.Parameters["@treeID"].Value = tree.ID;
                         command.Parameters["@x"].Value = tree.PositionX;
                         command.Parameters["@y"].Value = tree.PositionY;
-                        command.ExecuteNonQuery();
+                        await Task.Run(() => command.ExecuteNonQuery());
                     }
                     catch (Exception ex)
                     {
@@ -127,7 +129,7 @@ namespace Escape_The_Woods
 
                 Console.WriteLine($"Write forest {forest.ID} to database - end");
         }
-        public static void WriteMonkeyRecordsToDataBase(Monkey monkey, int forestID)
+        public static async Task WriteMonkeyRecordsToDataBase(Monkey monkey, int forestID)
         {
             Console.WriteLine($"Write route to database forest : {forestID}, Monkey : {monkey.Naam} - start");
             SqlConnection connection = GetConnection();
@@ -139,7 +141,7 @@ namespace Escape_The_Woods
                 {
                     try
                     {
-                        connection.Open();
+                        await Task.Run(() => connection.Open());
                         command.Parameters.Add(new SqlParameter("@monkeyID", SqlDbType.Int));
                         command.Parameters.Add(new SqlParameter("@monkeyName", SqlDbType.NVarChar));
                         command.Parameters.Add(new SqlParameter("@woodID", SqlDbType.Int));
@@ -155,7 +157,7 @@ namespace Escape_The_Woods
                         command.Parameters["@treeID"].Value = tree.ID;
                         command.Parameters["@x"].Value = tree.PositionX;
                         command.Parameters["@y"].Value = tree.PositionY;
-                        command.ExecuteNonQuery();
+                        await Task.Run(() => command.ExecuteNonQuery());
                     }
                     catch (Exception ex)
                     {
@@ -169,8 +171,9 @@ namespace Escape_The_Woods
             }
 
             Console.WriteLine($"Write route to database forest : {forestID}, Monkey : {monkey.Naam} - end");
+            
         }
-        public static void WriteLogsToDataBase(Forest forest)
+        public static async Task WriteLogsToDataBase(Forest forest)
         {
             Console.WriteLine($"forest : {forest.ID} writes log - Start");
             SqlConnection connection = GetConnection();
@@ -184,7 +187,7 @@ namespace Escape_The_Woods
                     {
                         try
                         {
-                            connection.Open();
+                            await Task.Run(()=> connection.Open());
                             command.Parameters.Add(new SqlParameter("@woodID", SqlDbType.Int));
                             command.Parameters.Add(new SqlParameter("@monkeyID", SqlDbType.Int));
                             command.Parameters.Add(new SqlParameter("@message", SqlDbType.NVarChar));
@@ -192,7 +195,7 @@ namespace Escape_The_Woods
                             command.Parameters["@woodID"].Value = forest.ID;
                             command.Parameters["@monkeyID"].Value = monkey.ID;
                             command.Parameters["@message"].Value = message;
-                            command.ExecuteNonQuery();
+                            await Task.Run(()=> command.ExecuteNonQuery());
                         }
                         catch (Exception ex)
                         {
@@ -207,6 +210,23 @@ namespace Escape_The_Woods
             }
 
             Console.WriteLine($"forest : {forest.ID} writes log - End");
+        }
+        public static async Task WriteToTextFile(Forest f)
+        {
+            string path = @"D:\Hogent\Programmeren\Programmeren 4\Escape The Woods" + $"\\Forest{f.ID}.txt";
+            FileInfo fi = new FileInfo(path);
+            using (StreamWriter sr = fi.CreateText()) { }
+            using (StreamWriter sWriter = new StreamWriter(path))
+            {
+                foreach(Monkey m in f.MonkeysInTheForest)
+                {
+                    foreach (Tree tree in m.VisitedTrees)
+                    {
+                        string line = $"{m.Naam} is in tree {tree.ID} at ({tree.PositionX},{tree.PositionY})";
+                        await Task.Run(() => sWriter.WriteLine(line));
+                    }
+                }
+            }
         }
     }
 }

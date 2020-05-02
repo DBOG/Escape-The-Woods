@@ -4,6 +4,7 @@ using System.Text;
 using System.Drawing;
 using System.Linq;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Escape_The_Woods
 {
@@ -18,7 +19,7 @@ namespace Escape_The_Woods
             _height = height;
             _forest = forest;
         }
-        public void createBitmap()
+        public async Task createBitmap()
         {
             Bitmap bm = new Bitmap(_width, _height);
             string path = @"D:\Hogent\Programmeren\Programmeren 4\Escape The Woods";
@@ -71,7 +72,7 @@ namespace Escape_The_Woods
                 }
                 g.DrawLine(pen, lastTree.PositionX, lastTree.PositionY, x, y);
             }
-            bm.Save(Path.Combine(path, _forest.ID.ToString() + "_escapeRoutes.jpg"));
+            await Task.Run(()=> bm.Save(Path.Combine(path, _forest.ID.ToString() + "_escapeRoutes.jpg")));
         }
     }
 }
